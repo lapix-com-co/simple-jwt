@@ -9,6 +9,7 @@ use Lapix\SimpleJwt\ExpiredJSONWebToken;
 use Lapix\SimpleJwt\ExpiredRefreshToken;
 use Lapix\SimpleJwt\InvalidRefreshToken;
 use Lapix\SimpleJwt\JSONWebTokenProvider;
+use Lapix\SimpleJwt\StringGenerator;
 use Lapix\SimpleJwt\TokenCreated;
 use Lapix\SimpleJwt\TokenRefreshed;
 use Lapix\SimpleJwt\TokenRevoked;
@@ -18,7 +19,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Tests\Stub\InMemoryCache;
 use Tests\Stub\InMemorySubjectRepository;
 use Tests\Stub\InMemoryTokenRepository;
-use Tests\Stub\StringGenerator;
 use Tests\Stub\TestUser;
 use Tests\Stub\TestUserClaimsHandler;
 
