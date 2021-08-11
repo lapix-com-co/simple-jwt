@@ -16,6 +16,8 @@ use function time;
 
 class JSONWebTokenProvider implements TokenProvider
 {
+    private const CACHE_PREFIX_KEY = 'jwtInvalidated:';
+
     private string $notBefore = 'now';
 
     private string $timeToLive = '+5 minutes';
@@ -41,6 +43,7 @@ class JSONWebTokenProvider implements TokenProvider
         private OpaqueTokenFactory $opaqueTokenFactory,
         private OpaqueTokenRepository $opaqueTokensRepository,
         private SubjectRepository $subjectRepository,
+        private ClaimsHandler $claimsHandler,
         private EventDispatcherInterface $dispatcher,
         private CacheInterface $invalidateCache
     ) {
@@ -77,7 +80,7 @@ class JSONWebTokenProvider implements TokenProvider
         }
 
         $payload = array_filter(
-            array_merge($payload, $subject->getClaims()),
+            array_merge($payload, $this->claimsHandler->pack($subject)),
             static fn ($v) => $v !== null,
         );
 
@@ -113,7 +116,7 @@ class JSONWebTokenProvider implements TokenProvider
 
         $content = JWT::decode($token, $keysMap, $allowedAlgs);
 
-        $key         = 'jwtInvalidated:' . $content->sub;
+        $key         = self::CACHE_PREFIX_KEY . $content->sub;
         $invalidated = $this->invalidateCache->get($key);
 
         if (! empty($invalidated) && $content->exp <= $invalidated) {
@@ -141,7 +144,7 @@ class JSONWebTokenProvider implements TokenProvider
     public function revoke(string $refreshToken): void
     {
         [$subject, $opaqueToken] = $this->invalidateToken($refreshToken);
-        $key                     = 'jwtInvalidated:' . $subject->getKey();
+        $key                     = self::CACHE_PREFIX_KEY . $subject->getKey();
         $ttl                     = strtotime($this->timeToLive, $this->now());
         $this->invalidateCache->set($key, $ttl, $ttl);
         $this->dispatcher->dispatch(

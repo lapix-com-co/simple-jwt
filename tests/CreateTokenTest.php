@@ -20,6 +20,7 @@ use Tests\Stub\InMemorySubjectRepository;
 use Tests\Stub\InMemoryTokenRepository;
 use Tests\Stub\StringGenerator;
 use Tests\Stub\TestUser;
+use Tests\Stub\TestUserClaimsHandler;
 
 use function base64_encode;
 use function sodium_crypto_sign_keypair;
@@ -232,9 +233,8 @@ class CreateTokenTest extends TestCase
             [$this->newEdDSAKey('1')],
             new StringGenerator(),
             new InMemoryTokenRepository(),
-            new InMemorySubjectRepository([
-                new TestUser('qwerty'),
-            ]),
+            new InMemorySubjectRepository([new TestUser('qwerty')]),
+            new TestUserClaimsHandler(),
             $this->dispatcherMock,
             new InMemoryCache(),
         );

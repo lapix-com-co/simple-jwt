@@ -7,9 +7,4 @@ namespace Lapix\SimpleJwt;
 interface Subject
 {
     public function getKey(): string;
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getClaims(): ?array;
 }
