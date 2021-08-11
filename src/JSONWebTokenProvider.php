@@ -14,7 +14,7 @@ use function assert;
 use function strtotime;
 use function time;
 
-class JWTTokenProvider implements TokenProvider
+class JSONWebTokenProvider implements TokenProvider
 {
     private string $notBefore = 'now';
 

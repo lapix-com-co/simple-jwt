@@ -8,7 +8,7 @@ use Lapix\SimpleJwt\EdDSAKeys;
 use Lapix\SimpleJwt\ExpiredJSONWebToken;
 use Lapix\SimpleJwt\ExpiredRefreshToken;
 use Lapix\SimpleJwt\InvalidRefreshToken;
-use Lapix\SimpleJwt\JWTTokenProvider;
+use Lapix\SimpleJwt\JSONWebTokenProvider;
 use Lapix\SimpleJwt\TokenCreated;
 use Lapix\SimpleJwt\TokenRefreshed;
 use Lapix\SimpleJwt\TokenRevoked;
@@ -212,7 +212,7 @@ class CreateTokenTest extends TestCase
         return new EdDSAKeys($publicKey, $privateKey, $key);
     }
 
-    private function configureProvider(JWTTokenProvider $provider): JWTTokenProvider
+    private function configureProvider(JSONWebTokenProvider $provider): JSONWebTokenProvider
     {
         return $provider->notBefore('now')
             ->timeToLive('+2 minutes')
@@ -226,9 +226,9 @@ class CreateTokenTest extends TestCase
             ->addExpiresInClaim(true);
     }
 
-    private function newJWTTokenProvider(): JWTTokenProvider
+    private function newJWTTokenProvider(): JSONWebTokenProvider
     {
-        return new JWTTokenProvider(
+        return new JSONWebTokenProvider(
             [$this->newEdDSAKey('1')],
             new StringGenerator(),
             new InMemoryTokenRepository(),
