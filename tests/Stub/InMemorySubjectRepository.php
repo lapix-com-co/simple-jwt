@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Stub;
 
-use Lapix\SimpleJwt\Subject;
 use Lapix\SimpleJwt\SubjectRepository;
 
 class InMemorySubjectRepository implements SubjectRepository
 {
-    /** @var array<string, Subject> */
+    /** @var array<string, object> */
     private array $items = [];
 
-    /** @param array<Subject> $items */
+    /** @param array<object> $items */
     public function __construct(array $items)
     {
         foreach ($items as $item) {
@@ -20,7 +19,7 @@ class InMemorySubjectRepository implements SubjectRepository
         }
     }
 
-    public function find(string $id): ?Subject
+    public function find(string $id): ?object
     {
         if (empty($this->items[$id])) {
             return null;

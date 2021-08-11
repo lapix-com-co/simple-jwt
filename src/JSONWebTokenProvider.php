@@ -49,7 +49,7 @@ class JSONWebTokenProvider implements TokenProvider
     ) {
     }
 
-    public function create(Subject $subject): TokenSet
+    public function create(object $subject): TokenSet
     {
         $set = $this->createNewTokenSetFromSubject($subject);
         $this->dispatcher->dispatch(new TokenCreated($set, $subject));
@@ -57,10 +57,10 @@ class JSONWebTokenProvider implements TokenProvider
         return $set;
     }
 
-    private function createNewTokenSetFromSubject(Subject $subject): TokenSet
+    private function createNewTokenSetFromSubject(object $subject): TokenSet
     {
         $now    = $this->now();
-        $key    = $subject->getKey();
+        $key    = $this->claimsHandler->getSubject($subject);
         $cipher = $this->ciphers[0];
         assert($cipher instanceof AsymetricCipher);
         $notBefore = strtotime($this->notBefore, $now);
@@ -156,7 +156,7 @@ class JSONWebTokenProvider implements TokenProvider
     }
 
     /**
-     * @return array{0: Subject, 1: OpaqueToken}
+     * @return array{0: object, 1: OpaqueToken}
      */
     private function invalidateToken(string $refreshToken): array
     {

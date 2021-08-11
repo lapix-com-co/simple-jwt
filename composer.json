@@ -36,10 +36,11 @@
         "phpstan": "phpstan analyse -c phpstan.neon.dist -vvv",
         "cs-check": "phpcs",
         "cs-fix": "phpcbf",
+        "phpunit": "phpunit -c phpunit.xml",
         "test": [
             "@cs-check",
             "@phpstan",
-            "phpunit -c phpunit.xml"
+            "@phpunit"
         ]
     }
 }

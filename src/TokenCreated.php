@@ -8,7 +8,7 @@ class TokenCreated
 {
     public function __construct(
         private TokenSet $token,
-        private Subject $subject
+        private object $subject
     ) {
     }
 
@@ -17,7 +17,7 @@ class TokenCreated
         return $this->token;
     }
 
-    public function getSubject(): Subject
+    public function getSubject(): object
     {
         return $this->subject;
     }

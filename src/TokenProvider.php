@@ -13,7 +13,7 @@ interface TokenProvider
     /**
      * Creates a new JWT token with the given subject.
      */
-    public function create(Subject $subject): TokenSet;
+    public function create(object $subject): TokenSet;
 
     /**
      * Get the JWT with the given properties from a string value.

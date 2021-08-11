@@ -9,7 +9,9 @@ interface ClaimsHandler
     /**
      * @return array<string, mixed>
      */
-    public function pack(Subject $subject): array;
+    public function pack(object $subject): array;
 
-    public function unpack(JSONWebToken $jwt): Subject;
+    public function unpack(JSONWebToken $jwt): object;
+
+    public function getSubject(object $user): string;
 }

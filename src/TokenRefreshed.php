@@ -9,7 +9,7 @@ class TokenRefreshed
     public function __construct(
         private TokenSet $newTokenSet,
         private OpaqueToken $oldRefreshToken,
-        private Subject $subject
+        private object $subject
     ) {
     }
 
@@ -23,7 +23,7 @@ class TokenRefreshed
         return $this->oldRefreshToken;
     }
 
-    public function getSubject(): Subject
+    public function getSubject(): object
     {
         return $this->subject;
     }

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Stub;
 
-use Lapix\SimpleJwt\Subject;
-
-class TestUser implements Subject
+class TestUser
 {
     /**
      * @param array<string, mixed> $claims

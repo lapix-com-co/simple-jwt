@@ -8,7 +8,7 @@ class TokenRevoked
 {
     public function __construct(
         private OpaqueToken $oldRefreshToken,
-        private Subject $subject
+        private object $subject
     ) {
     }
 
@@ -17,7 +17,7 @@ class TokenRevoked
         return $this->oldRefreshToken;
     }
 
-    public function getSubject(): Subject
+    public function getSubject(): object
     {
         return $this->subject;
     }
