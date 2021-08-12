@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lapix\SimpleJwt;
 
+use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -106,6 +107,7 @@ class JSONWebTokenProvider implements TokenProvider
 
     public function decode(string $token): JSONWebToken
     {
+        $content     = null;
         $keysMap     = [];
         $allowedAlgs = [];
 
@@ -114,7 +116,11 @@ class JSONWebTokenProvider implements TokenProvider
             $allowedAlgs[]             = $cipher->getName();
         }
 
-        $content = JWT::decode($token, $keysMap, $allowedAlgs);
+        try {
+            $content = JWT::decode($token, $keysMap, $allowedAlgs);
+        } catch (ExpiredException $e) {
+            throw new ExpiredJSONWebToken('The token is no longer valid');
+        }
 
         $key         = self::CACHE_PREFIX_KEY . $content->sub;
         $invalidated = $this->invalidateCache->get($key);

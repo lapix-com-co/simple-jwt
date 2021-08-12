@@ -211,6 +211,19 @@ class CreateTokenTest extends TestCase
         $provider->decode($tokens->getJWT()->getToken());
     }
 
+    public function testDecodeExpiredJSONWebToken(): void
+    {
+        $subject  = new TestUser('qwerty', []);
+        $provider = $this->configureProvider($this->newJWTTokenProvider())
+            ->setTestTimestamp(1000);
+        $tokens   = $provider->create($subject);
+        $provider->setTestTimestamp(60 * 60 * 24 * 365);
+
+        $this->expectException(ExpiredJSONWebToken::class);
+
+        $provider->decode($tokens->getJWT()->getToken());
+    }
+
     private function newEdDSAKey(?string $key = null): EdDSAKeys
     {
         $keyPair    = sodium_crypto_sign_keypair();
