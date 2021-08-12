@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Firebase\JWT\JWT;
 use Lapix\SimpleJwt\EdDSAKeys;
 use Lapix\SimpleJwt\ExpiredJSONWebToken;
 use Lapix\SimpleJwt\ExpiredRefreshToken;
 use Lapix\SimpleJwt\InvalidatingToken;
+use Lapix\SimpleJwt\InvalidJSONWebToken;
 use Lapix\SimpleJwt\InvalidRefreshToken;
 use Lapix\SimpleJwt\JSONWebTokenProvider;
 use Lapix\SimpleJwt\StringGenerator;
@@ -222,6 +224,35 @@ class CreateTokenTest extends TestCase
         $this->expectException(ExpiredJSONWebToken::class);
 
         $provider->decode($tokens->getJWT()->getToken());
+    }
+
+    /**
+     * @dataProvider invalidJSONWebTokens
+     */
+    public function testDecodeInvalidJSONWebToken(string $jwt, string $exception): void
+    {
+        $provider = $this->configureProvider($this->newJWTTokenProvider());
+
+        $this->expectException($exception);
+
+        $provider->decode($jwt);
+    }
+
+    /**
+     * @return array{0: string, 1: string}[]
+     */
+    public function invalidJSONWebTokens(): array
+    {
+        return [
+            ['', InvalidJSONWebToken::class],
+            ['qwerty.qwerty.qwerty', InvalidJSONWebToken::class],
+            ['qwerty.qwerty', InvalidJSONWebToken::class],
+            [JWT::encode(['sub' => 'me'], 'qwerty'), InvalidJSONWebToken::class],
+            [
+                JWT::encode(['sub' => 'me'], $this->newEdDSAKey()->getPrivateKey(), 'EdDSA', '1'),
+                InvalidJSONWebToken::class,
+            ],
+        ];
     }
 
     private function newEdDSAKey(?string $key = null): EdDSAKeys
