@@ -164,7 +164,7 @@ class JSONWebTokenProvider implements TokenProvider
         $subject = $this->subjectRepository->find($token->subject);
 
         $this->dispatcher->dispatch(
-            new InvalidatingToken($token, $subject),
+            new InvalidatingToken($token, $subject, $action),
         );
 
         $this->opaqueTokensRepository->delete($token);

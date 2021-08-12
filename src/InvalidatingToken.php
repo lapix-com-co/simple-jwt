@@ -8,7 +8,8 @@ class InvalidatingToken
 {
     public function __construct(
         private OpaqueToken $refreshToken,
-        private object $subject
+        private object $subject,
+        private string $action
     ) {
     }
 
@@ -20,5 +21,10 @@ class InvalidatingToken
     public function getSubject(): object
     {
         return $this->subject;
+    }
+
+    public function getAction(): string
+    {
+        return $this->action;
     }
 }
