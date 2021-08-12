@@ -7,6 +7,7 @@ namespace Tests;
 use Lapix\SimpleJwt\EdDSAKeys;
 use Lapix\SimpleJwt\ExpiredJSONWebToken;
 use Lapix\SimpleJwt\ExpiredRefreshToken;
+use Lapix\SimpleJwt\InvalidatingToken;
 use Lapix\SimpleJwt\InvalidRefreshToken;
 use Lapix\SimpleJwt\JSONWebTokenProvider;
 use Lapix\SimpleJwt\StringGenerator;
@@ -157,9 +158,12 @@ class CreateTokenTest extends TestCase
         $provider = $this->configureProvider($this->newJWTTokenProvider());
         $tokens   = $provider->create($subject);
 
-        $this->dispatcherMock->expects($this->once())
+        $this->dispatcherMock->expects($this->exactly(2))
             ->method('dispatch')
-            ->with($this->isInstanceOf(TokenRefreshed::class));
+            ->withConsecutive(
+                [$this->isInstanceOf(InvalidatingToken::class)],
+                [$this->isInstanceOf(TokenRefreshed::class)],
+            );
 
         $provider->refresh($tokens->getRefreshToken()->getToken());
     }
@@ -170,9 +174,12 @@ class CreateTokenTest extends TestCase
         $provider = $this->configureProvider($this->newJWTTokenProvider());
         $tokens   = $provider->create($subject);
 
-        $this->dispatcherMock->expects($this->once())
+        $this->dispatcherMock->expects($this->exactly(2))
             ->method('dispatch')
-            ->with($this->isInstanceOf(TokenRevoked::class));
+            ->withConsecutive(
+                [$this->isInstanceOf(InvalidatingToken::class)],
+                [$this->isInstanceOf(TokenRevoked::class)],
+            );
 
         $provider->revoke($tokens->getRefreshToken()->getToken());
     }

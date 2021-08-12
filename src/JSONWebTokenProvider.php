@@ -128,7 +128,7 @@ class JSONWebTokenProvider implements TokenProvider
 
     public function refresh(string $refreshToken): TokenSet
     {
-        [$subject, $oldRefreshToken] = $this->invalidateToken($refreshToken);
+        [$subject, $oldRefreshToken] = $this->invalidateToken($refreshToken, 'refresh');
         $newTokenSet                 = $this->createNewTokenSetFromSubject($subject);
         $this->dispatcher->dispatch(
             new TokenRefreshed(
@@ -143,7 +143,7 @@ class JSONWebTokenProvider implements TokenProvider
 
     public function revoke(string $refreshToken): void
     {
-        [$subject, $opaqueToken] = $this->invalidateToken($refreshToken);
+        [$subject, $opaqueToken] = $this->invalidateToken($refreshToken, 'revoke');
         $key                     = self::CACHE_PREFIX_KEY . $subject->getKey();
         $ttl                     = strtotime($this->timeToLive, $this->now());
         $this->invalidateCache->set($key, $ttl, $ttl);
@@ -158,10 +158,15 @@ class JSONWebTokenProvider implements TokenProvider
     /**
      * @return array{0: object, 1: OpaqueToken}
      */
-    private function invalidateToken(string $refreshToken): array
+    private function invalidateToken(string $refreshToken, string $action): array
     {
         $token   = $this->getRefreshToken($refreshToken);
         $subject = $this->subjectRepository->find($token->subject);
+
+        $this->dispatcher->dispatch(
+            new InvalidatingToken($token, $subject),
+        );
+
         $this->opaqueTokensRepository->delete($token);
 
         return [$subject, $token];
