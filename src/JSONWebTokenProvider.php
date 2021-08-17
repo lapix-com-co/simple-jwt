@@ -16,7 +16,7 @@ use function array_merge;
 use function assert;
 use function count;
 use function min;
-use function random_int;
+use function rand;
 use function strtotime;
 use function time;
 
@@ -75,7 +75,7 @@ class JSONWebTokenProvider implements TokenProvider
             return $this->ciphers[0];
         }
 
-        $use = self::$randomKey ?? random_int(0, count($this->ciphers));
+        $use = self::$randomKey ?? rand(0, count($this->ciphers));
 
         if ($this->availableKeys !== -1) {
             $use = min($use, $this->availableKeys);
