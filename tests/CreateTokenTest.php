@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Firebase\JWT\JWT;
+use Lapix\SimpleJwt\AsymetricCipher;
 use Lapix\SimpleJwt\EdDSAKeys;
 use Lapix\SimpleJwt\ExpiredJSONWebToken;
 use Lapix\SimpleJwt\ExpiredRefreshToken;
@@ -49,7 +50,8 @@ class CreateTokenTest extends TestCase
     {
         parent::setup();
 
-        $this->dispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        JSONWebTokenProvider::$randomKey = null;
+        $this->dispatcherMock            = $this->createMock(EventDispatcherInterface::class);
     }
 
     public function testCreateToken(): void
@@ -255,6 +257,36 @@ class CreateTokenTest extends TestCase
         ];
     }
 
+    public function testUseOnlyAvailableKeys(): void
+    {
+        JSONWebTokenProvider::$randomKey = 2;
+
+        $subject  = new TestUser('qwerty', []);
+        $provider = $this->newJWTTokenProvider([
+            $this->newEdDSAKey('1'),
+            $this->newEdDSAKey('2'),
+        ])->availableKeys(1);
+
+        $set = $provider->create($subject);
+
+        $this->assertEquals('1', $set->getJWT()->kid);
+    }
+
+    public function testUseKeysDifferentToTheFirstOne(): void
+    {
+        JSONWebTokenProvider::$randomKey = 2;
+
+        $subject  = new TestUser('qwerty', []);
+        $provider = $this->newJWTTokenProvider([
+            $this->newEdDSAKey('1'),
+            $this->newEdDSAKey('2'),
+        ]);
+
+        $set = $provider->create($subject);
+
+        $this->assertEquals('2', $set->getJWT()->kid);
+    }
+
     private function newEdDSAKey(?string $key = null): EdDSAKeys
     {
         $keyPair    = sodium_crypto_sign_keypair();
@@ -278,10 +310,17 @@ class CreateTokenTest extends TestCase
             ->addExpiresInClaim(true);
     }
 
-    private function newJWTTokenProvider(): JSONWebTokenProvider
+    /**
+     * @param AsymetricCipher[] $keys
+     */
+    private function newJWTTokenProvider(array $keys = []): JSONWebTokenProvider
     {
+        if (empty($keys)) {
+            $keys = [$this->newEdDSAKey('1')];
+        }
+
         return new JSONWebTokenProvider(
-            [$this->newEdDSAKey('1')],
+            $keys,
             new StringGenerator(),
             new InMemoryTokenRepository(),
             new InMemorySubjectRepository([new TestUser('qwerty')]),

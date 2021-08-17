@@ -14,11 +14,16 @@ use UnexpectedValueException;
 use function array_filter;
 use function array_merge;
 use function assert;
+use function count;
+use function min;
+use function random_int;
 use function strtotime;
 use function time;
 
 class JSONWebTokenProvider implements TokenProvider
 {
+    public static ?int $randomKey = null;
+
     private const CACHE_PREFIX_KEY = 'jwtInvalidated:';
 
     private string $notBefore = 'now';
@@ -27,14 +32,14 @@ class JSONWebTokenProvider implements TokenProvider
 
     private int $availableKeys = -1;
 
-    private ?string $issuer;
+    private ?string $issuer = null;
 
     /** @var string|string[]|null */
-    private string|array|null $audience;
+    private string|array|null $audience = null;
 
     private bool $addExpiresIn = false;
 
-    private ?int $testTimestamp;
+    private ?int $testTimestamp = null;
 
     private string $refreshTokenTimeToLive = '+2 weeks';
 
@@ -60,11 +65,30 @@ class JSONWebTokenProvider implements TokenProvider
         return $set;
     }
 
+    private function getCipher(): AsymetricCipher
+    {
+        if (empty($this->ciphers)) {
+            throw new DomainException('ciphers list can\'t be empty');
+        }
+
+        if (count($this->ciphers) === 1) {
+            return $this->ciphers[0];
+        }
+
+        $use = self::$randomKey ?? random_int(0, count($this->ciphers));
+
+        if ($this->availableKeys !== -1) {
+            $use = min($use, $this->availableKeys);
+        }
+
+        return $this->ciphers[$use - 1];
+    }
+
     private function createNewTokenSetFromSubject(object $subject): TokenSet
     {
         $now    = $this->now();
         $key    = $this->claimsHandler->getSubject($subject);
-        $cipher = $this->ciphers[0];
+        $cipher = $this->getCipher();
         assert($cipher instanceof AsymetricCipher);
         $notBefore = strtotime($this->notBefore, $now);
         $expiresAt = strtotime($this->timeToLive, $now);
@@ -102,7 +126,10 @@ class JSONWebTokenProvider implements TokenProvider
         $this->opaqueTokensRepository->create($refreshToken);
 
         return new TokenSet(
-            new JSONWebToken($jwt, $payload),
+            new JSONWebToken($jwt, array_merge($payload, [
+                'alg' => $cipher->getName(),
+                'kid' => $cipher->getID(),
+            ])),
             $refreshToken,
         );
     }
@@ -241,7 +268,7 @@ class JSONWebTokenProvider implements TokenProvider
 
     public function availableKeys(int $keys): self
     {
-        $this->availableKeys = $keys;
+        $this->availableKeys = min($keys, count($this->ciphers));
 
         return $this;
     }
