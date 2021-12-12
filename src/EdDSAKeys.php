@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Lapix\SimpleJwt;
 
-class EdDSAKeys implements AsymetricCipher
+class EdDSAKeys implements AsymetricCipher, EllipticCurveAware
 {
     public function __construct(
         private string $publicKey,
@@ -31,5 +31,15 @@ class EdDSAKeys implements AsymetricCipher
     public function getName(): string
     {
         return 'EdDSA';
+    }
+
+    public function getType(): string
+    {
+        return 'OKP';
+    }
+
+    public function getEllipticCurveName(): string
+    {
+        return 'Ed25519';
     }
 }

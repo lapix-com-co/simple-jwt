@@ -12,5 +12,10 @@ interface AsymetricCipher
 
     public function getPublicKey(): string;
 
+    /**
+     * Returns the Key type also known as "kty".
+     */
+    public function getType(): string;
+
     public function getID(): ?string;
 }
