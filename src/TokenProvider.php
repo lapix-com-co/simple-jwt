@@ -16,6 +16,11 @@ interface TokenProvider
     public function create(object $subject): TokenSet;
 
     /**
+     * Creates a new JWT token but skip the opaque token creation.
+     */
+    public function createJWT(object $subject): JSONWebToken;
+
+    /**
      * Get the JWT with the given properties from a string value.
      */
     public function decode(string $token): JSONWebToken;

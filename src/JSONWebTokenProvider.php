@@ -65,6 +65,11 @@ class JSONWebTokenProvider implements TokenProvider
         return $set;
     }
 
+    public function createJWT(object $subject): JSONWebToken
+    {
+        return $this->createNewJWTTokenFromSubject($this->now(), $subject);
+    }
+
     private function getCipher(): AsymetricCipher
     {
         if (empty($this->ciphers)) {
@@ -84,9 +89,8 @@ class JSONWebTokenProvider implements TokenProvider
         return $this->ciphers[$use - 1];
     }
 
-    private function createNewTokenSetFromSubject(object $subject): TokenSet
+    private function createNewJWTTokenFromSubject(int $now, object $subject): JSONWebToken
     {
-        $now    = $this->now();
         $key    = $this->claimsHandler->getSubject($subject);
         $cipher = $this->getCipher();
         assert($cipher instanceof AsymetricCipher);
@@ -118,6 +122,16 @@ class JSONWebTokenProvider implements TokenProvider
             keyId: $cipher->getID(),
         );
 
+        return new JSONWebToken($jwt, array_merge($payload, [
+            'alg' => $cipher->getName(),
+            'kid' => $cipher->getID(),
+        ]));
+    }
+
+    private function createNewOpaqueTokenFromSubject(int $now, object $subject): OpaqueToken
+    {
+        $key = $this->claimsHandler->getSubject($subject);
+
         $refreshToken = $this->opaqueTokenFactory->create([
             'subject' => $key,
             'expiresAt' => strtotime($this->refreshTokenTimeToLive, $now),
@@ -125,12 +139,16 @@ class JSONWebTokenProvider implements TokenProvider
 
         $this->opaqueTokensRepository->create($refreshToken);
 
+        return $refreshToken;
+    }
+
+    private function createNewTokenSetFromSubject(object $subject): TokenSet
+    {
+        $now = $this->now();
+
         return new TokenSet(
-            new JSONWebToken($jwt, array_merge($payload, [
-                'alg' => $cipher->getName(),
-                'kid' => $cipher->getID(),
-            ])),
-            $refreshToken,
+            $this->createNewJWTTokenFromSubject($now, $subject),
+            $this->createNewOpaqueTokenFromSubject($now, $subject),
         );
     }
 
