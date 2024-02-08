@@ -48,8 +48,6 @@ class CreateTokenTest extends TestCase
 
     public function setup(): void
     {
-        parent::setup();
-
         JSONWebTokenProvider::$randomKey = null;
         $this->dispatcherMock            = $this->createMock(EventDispatcherInterface::class);
     }
