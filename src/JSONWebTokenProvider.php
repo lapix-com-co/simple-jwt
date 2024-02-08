@@ -7,6 +7,7 @@ namespace Lapix\SimpleJwt;
 use DomainException;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\SimpleCache\CacheInterface;
 use UnexpectedValueException;
@@ -154,17 +155,17 @@ class JSONWebTokenProvider implements TokenProvider
 
     public function decode(string $token): JSONWebToken
     {
-        $content     = null;
-        $keysMap     = [];
-        $allowedAlgs = [];
-
-        foreach ($this->ciphers as $cipher) {
-            $keysMap[$cipher->getID()] = $cipher->getPublicKey();
-            $allowedAlgs[]             = $cipher->getName();
+        $content = null;
+        $keysMap = [];
+        foreach ($this->ciphers as $index => $cipher) {
+            $keysMap[$cipher->getID()] = new Key(
+                $cipher->getPublicKey(),
+                $cipher->getName(),
+            );
         }
 
         try {
-            $content = JWT::decode($token, $keysMap, $allowedAlgs);
+            $content = JWT::decode($token, $keysMap);
         } catch (ExpiredException $e) {
             throw new ExpiredJSONWebToken('The token is no longer valid');
         } catch (UnexpectedValueException $e) {

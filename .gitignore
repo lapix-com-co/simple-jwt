@@ -3,3 +3,4 @@
 vendor
 tags
 tags.lock
+.phpactor.json

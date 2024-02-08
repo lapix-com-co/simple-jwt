@@ -249,7 +249,7 @@ class CreateTokenTest extends TestCase
             ['', InvalidJSONWebToken::class],
             ['qwerty.qwerty.qwerty', InvalidJSONWebToken::class],
             ['qwerty.qwerty', InvalidJSONWebToken::class],
-            [JWT::encode(['sub' => 'me'], 'qwerty'), InvalidJSONWebToken::class],
+            [JWT::encode(['sub' => 'me'], 'qwerty', 'HS256'), InvalidJSONWebToken::class],
             [
                 JWT::encode(['sub' => 'me'], $this->newEdDSAKey()->getPrivateKey(), 'EdDSA', '1'),
                 InvalidJSONWebToken::class,
