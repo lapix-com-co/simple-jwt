@@ -225,9 +225,9 @@ class JSONWebTokenProvider implements TokenProvider
             new InvalidatingToken($token, $subject, $action),
         );
 
-        if ($action !== 'refresh') {
-            $this->opaqueTokensRepository->delete($token);
-        }
+        // Will invalidate the token, clients must to implement a solution
+        // that adds some leeway to the allow a smooth UX.
+        $this->opaqueTokensRepository->delete($token);
 
         return [$subject, $token];
     }
