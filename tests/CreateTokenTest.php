@@ -57,6 +57,9 @@ class CreateTokenTest extends TestCase
         $subject  = new TestUser('qwerty', []);
         $provider = $this->configureProvider($this->newJWTTokenProvider());
 
+        // Test the setter...
+        $provider->setClaimsHandler($provider->getClaimsHandler());
+
         $properties = [
             'scope' => 'auth-only',
             'sub' => 'skipped',

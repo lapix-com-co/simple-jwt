@@ -328,4 +328,16 @@ class JSONWebTokenProvider implements TokenProvider
 
         return $this;
     }
+
+    public function setClaimsHandler(ClaimsHandler $claimsHandler): self
+    {
+        $this->claimsHandler = $claimsHandler;
+
+        return $this;
+    }
+
+    public function getClaimsHandler(): ClaimsHandler
+    {
+        return $this->claimsHandler;
+    }
 }
