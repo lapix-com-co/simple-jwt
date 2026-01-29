@@ -8,7 +8,7 @@ class TokenCreated
 {
     public function __construct(
         private TokenSet $token,
-        private object $subject
+        private object $subject,
     ) {
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Stub;
 
+use DateInterval;
 use Psr\SimpleCache\CacheInterface;
 
 use function time;
@@ -13,9 +14,6 @@ class InMemoryCache implements CacheInterface
     /** @var array<string, mixed> */
     private array $items = [];
 
-    /**
-     * {@inheritDoc}
-     */
     public function get(string $key, mixed $default = null): mixed
     {
         if (! isset($this->items[$key])) {
@@ -31,10 +29,7 @@ class InMemoryCache implements CacheInterface
         return $item['value'];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         $this->items[$key] = [
             'value' => $value,
@@ -44,9 +39,6 @@ class InMemoryCache implements CacheInterface
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function delete(string $key): bool
     {
         if (! isset($this->items[$key])) {
@@ -58,9 +50,6 @@ class InMemoryCache implements CacheInterface
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function clear(): bool
     {
         $this->items = [];
@@ -91,7 +80,7 @@ class InMemoryCache implements CacheInterface
      *
      * {@inheritDoc}
      */
-    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
@@ -114,9 +103,6 @@ class InMemoryCache implements CacheInterface
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function has(string $key): bool
     {
         return ! isset($this->items[$key]);

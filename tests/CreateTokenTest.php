@@ -57,9 +57,24 @@ class CreateTokenTest extends TestCase
         $subject  = new TestUser('qwerty', []);
         $provider = $this->configureProvider($this->newJWTTokenProvider());
 
-        $token = $provider->create($subject);
+        $properties = [
+            'scope' => 'auth-only',
+            'sub' => 'skipped',
+        ];
+        $token      = $provider->create($subject, $properties);
 
         $this->assertNotEmpty($token);
+
+        // JWT checks
+        $this->assertTrue($token->getJWT()->scope === 'auth-only');
+        // Properties wont be overwritten.
+        $this->assertTrue($token->getJWT()->sub !== 'skipped');
+
+        // Opaque checks
+        $this->assertEquals(
+            $properties,
+            $token->getRefreshToken()->getProperties()['additional'],
+        );
     }
 
     public function testDecodedKeyIsValid(): void
@@ -95,7 +110,7 @@ class CreateTokenTest extends TestCase
         $provider = $this->configureProvider($this->newJWTTokenProvider())
             ->setTestTimestamp(1000);
 
-        $tokens = $provider->create($subject);
+        $tokens = $provider->create($subject, ['scope' => 'auth-only']);
         $provider->setTestTimestamp(2000);
         $refreshed = $provider->refresh($tokens->getRefreshToken()->getToken());
 
@@ -106,6 +121,15 @@ class CreateTokenTest extends TestCase
         $this->assertNotEquals(
             $tokens->getRefreshToken()->getToken(),
             $refreshed->getRefreshToken()->getToken(),
+        );
+        // Additional properties are persisted.
+        $this->assertEquals(
+            $tokens->getRefreshToken()->getProperties()['additional'],
+            $refreshed->getRefreshToken()->getProperties()['additional'],
+        );
+        $this->assertEquals(
+            'auth-only',
+            $refreshed->getRefreshToken()->getProperties()['additional']['scope'],
         );
     }
 
@@ -247,11 +271,14 @@ class CreateTokenTest extends TestCase
             ['', InvalidJSONWebToken::class],
             ['qwerty.qwerty.qwerty', InvalidJSONWebToken::class],
             ['qwerty.qwerty', InvalidJSONWebToken::class],
-            [JWT::encode(
-                payload: ['sub' => 'me'],
-                key: 'qwerty123-qwerty123-qwerty123-qwerty123',
-                alg: 'HS256',
-            ), InvalidJSONWebToken::class],
+            [
+                JWT::encode(
+                    payload: ['sub' => 'me'],
+                    key: 'qwerty123-qwerty123-qwerty123-qwerty123',
+                    alg: 'HS256',
+                ),
+                InvalidJSONWebToken::class,
+            ],
             [
                 JWT::encode(['sub' => 'me'], $this->newEdDSAKey()->getPrivateKey(), 'EdDSA', '1'),
                 InvalidJSONWebToken::class,

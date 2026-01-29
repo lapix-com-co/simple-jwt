@@ -58,17 +58,17 @@ class JSONWebTokenProvider implements TokenProvider
     ) {
     }
 
-    public function create(object $subject): TokenSet
+    public function create(object $subject, array $additional = []): TokenSet
     {
-        $set = $this->createNewTokenSetFromSubject($subject);
+        $set = $this->createNewTokenSetFromSubject($subject, $additional);
         $this->dispatcher->dispatch(new TokenCreated($set, $subject));
 
         return $set;
     }
 
-    public function createJWT(object $subject): JSONWebToken
+    public function createJWT(object $subject, array $additional = []): JSONWebToken
     {
-        return $this->createNewJWTTokenFromSubject($this->now(), $subject);
+        return $this->createNewJWTTokenFromSubject($this->now(), $subject, $additional);
     }
 
     private function getCipher(): AsymetricCipher
@@ -90,7 +90,7 @@ class JSONWebTokenProvider implements TokenProvider
         return $this->ciphers[$use - 1];
     }
 
-    private function createNewJWTTokenFromSubject(int $now, object $subject): JSONWebToken
+    private function createNewJWTTokenFromSubject(int $now, object $subject, array $additional): JSONWebToken
     {
         $key    = $this->claimsHandler->getSubject($subject);
         $cipher = $this->getCipher();
@@ -98,14 +98,14 @@ class JSONWebTokenProvider implements TokenProvider
         $notBefore = strtotime($this->notBefore, $now);
         $expiresAt = strtotime($this->timeToLive, $now);
 
-        $payload = [
+        $payload = array_merge($additional, [
             'iss' => $this->issuer,
             'aud' => $this->audience,
             'iat' => $now,
             'sub' => $key,
             'exp' => $expiresAt,
             'nbf' => $notBefore,
-        ];
+        ]);
 
         if ($this->addExpiresIn) {
             $payload['exi'] = $expiresAt - $now;
@@ -129,13 +129,14 @@ class JSONWebTokenProvider implements TokenProvider
         ]));
     }
 
-    private function createNewOpaqueTokenFromSubject(int $now, object $subject): OpaqueToken
+    private function createNewOpaqueTokenFromSubject(int $now, object $subject, array $additional): OpaqueToken
     {
         $key = $this->claimsHandler->getSubject($subject);
 
         $refreshToken = $this->opaqueTokenFactory->create([
             'subject' => $key,
             'expiresAt' => strtotime($this->refreshTokenTimeToLive, $now),
+            'additional' => $additional,
         ]);
 
         $this->opaqueTokensRepository->create($refreshToken);
@@ -143,13 +144,13 @@ class JSONWebTokenProvider implements TokenProvider
         return $refreshToken;
     }
 
-    private function createNewTokenSetFromSubject(object $subject): TokenSet
+    private function createNewTokenSetFromSubject(object $subject, array $additional): TokenSet
     {
         $now = $this->now();
 
         return new TokenSet(
-            $this->createNewJWTTokenFromSubject($now, $subject),
-            $this->createNewOpaqueTokenFromSubject($now, $subject),
+            $this->createNewJWTTokenFromSubject($now, $subject, $additional),
+            $this->createNewOpaqueTokenFromSubject($now, $subject, $additional),
         );
     }
 
@@ -187,7 +188,10 @@ class JSONWebTokenProvider implements TokenProvider
     public function refresh(string $refreshToken): TokenSet
     {
         [$subject, $oldRefreshToken] = $this->invalidateToken($refreshToken, 'refresh');
-        $newTokenSet                 = $this->createNewTokenSetFromSubject($subject);
+        $newTokenSet                 = $this->createNewTokenSetFromSubject(
+            $subject,
+            $oldRefreshToken->getProperties()['additional'] ?? [],
+        );
         $this->dispatcher->dispatch(
             new TokenRefreshed(
                 $newTokenSet,

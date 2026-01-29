@@ -11,7 +11,7 @@ class Token
      */
     public function __construct(
         private string $token,
-        protected array $properties
+        protected array $properties,
     ) {
     }
 

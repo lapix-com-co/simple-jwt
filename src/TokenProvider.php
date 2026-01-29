@@ -11,14 +11,18 @@ namespace Lapix\SimpleJwt;
 interface TokenProvider
 {
     /**
+     * @param array<string, string> $additional Properties added to the JWT.
+     *
      * Creates a new JWT token with the given subject.
      */
-    public function create(object $subject): TokenSet;
+    public function create(object $subject, array $additional = []): TokenSet;
 
     /**
+     * @param array<string, string> $additional Properties added to the JWT.
+     *
      * Creates a new JWT token but skip the opaque token creation.
      */
-    public function createJWT(object $subject): JSONWebToken;
+    public function createJWT(object $subject, array $additional = []): JSONWebToken;
 
     /**
      * Get the JWT with the given properties from a string value.
