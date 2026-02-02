@@ -340,4 +340,9 @@ class JSONWebTokenProvider implements TokenProvider
     {
         return $this->claimsHandler;
     }
+
+    public function withTTL(string $ttl): self
+    {
+        return clone($this, ['timeToLive' => $ttl]);
+    }
 }

@@ -19,7 +19,7 @@
         }
     ],
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.5",
         "paragonie/sodium_compat": "^1.17",
         "psr/simple-cache": "*",
         "psr/event-dispatcher": "*",
