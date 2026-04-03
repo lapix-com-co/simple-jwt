@@ -20,7 +20,6 @@
     ],
     "require": {
         "php": ">=8.0",
-        "paragonie/sodium_compat": "^1.17",
         "psr/simple-cache": "*",
         "psr/event-dispatcher": "*",
         "firebase/php-jwt": "^7.0"
